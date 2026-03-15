@@ -25,7 +25,13 @@ def get_video_info():
     ydl_opts = {
         'skip_download': True,
         'format': 'best[ext=mp4]/best',
+        'quiet': True,
+        'no_warnings': True,
     }
+    
+    # Adiciona suporte a cookies se o arquivo existir (necessário para deploy em cloud/Render)
+    if os.path.exists('cookies.txt'):
+        ydl_opts['cookiefile'] = 'cookies.txt'
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info_dict = ydl.extract_info(url, download=False)
@@ -52,6 +58,9 @@ def download_video():
         'quiet': True,
         'no_warnings': True,
     }
+
+    if os.path.exists('cookies.txt'):
+        ydl_opts['cookiefile'] = 'cookies.txt'
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
