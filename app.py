@@ -1,8 +1,48 @@
 import os
+import re
 import urllib.request
 from flask import Flask, request, jsonify, Response, render_template
 from flask_cors import CORS
 import yt_dlp
+
+# ─────────────────────── Error helper ───────────────────────
+# Errors that mean the production server (Render.com datacenter
+# IP) is being blocked by YouTube's bot-detection.
+_BOT_DETECTION_SIGNALS = [
+    'Sign in to confirm',
+    'confirm you\'re not a bot',
+    'This helps protect our community',
+    'bot',
+]
+
+_MAINTENANCE_MSG = (
+    "A versão online está temporariamente em manutenção.\n"
+    "Por favor, use a versão local do software enquanto trabalhamos na correção.\n"
+    "A versão local está funcionando perfeitamente!"
+    "Bons donwloads!"
+)
+
+_ANSI_RE = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+_YT_PREFIX_RE = re.compile(r'^ERROR:\s*\[youtube\]\s*[a-zA-Z0-9_-]+:\s*')
+
+
+def parse_ydl_error(exc) -> str:
+    """Return a clean, localised error string from a yt-dlp exception."""
+    raw = str(exc)
+    clean = _ANSI_RE.sub('', raw)
+    clean = _YT_PREFIX_RE.sub('', clean)
+
+    # Bot-detection / sign-in required → maintenance message
+    if any(sig.lower() in clean.lower() for sig in _BOT_DETECTION_SIGNALS):
+        return _MAINTENANCE_MSG
+
+    if 'DRM protected' in clean:
+        return "Este vídeo é protegido por DRM (Direitos Autorais) e não pode ser baixado."
+    if 'Video unavailable' in clean:
+        return "Este vídeo está indisponível."
+
+    return clean
+# ─────────────────────────────────────────────────────────────
 
 app = Flask(__name__)
 CORS(app)
@@ -52,11 +92,11 @@ def get_ydl_opts(extra=None):
         'format': 'best[ext=mp4]/best',
         'quiet': False,       # Enable verbose for debugging in server logs
         'no_warnings': False,
-        # Try multiple clients: tv is treated differently from web
-        # and often bypasses bot detection on datacenter IPs
+        # Use android + web clients. 'tv' and 'mweb' cause false DRM
+        # errors on YouTube Shorts and have been removed.
         'extractor_args': {
             'youtube': {
-                'player_client': ['tv', 'mweb'],
+                'player_client': ['android', 'web'],
             }
         },
     }
@@ -115,7 +155,7 @@ def get_video_info():
                 "ext": info_dict.get('ext', 'mp4')
             })
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": parse_ydl_error(e)}), 500
 
 @app.route('/api/download', methods=['GET'])
 def download_video():
@@ -154,7 +194,7 @@ def download_video():
             return Response(generate(), headers=headers)
 
     except Exception as e:
-        return str(e), 500
+        return parse_ydl_error(e), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
