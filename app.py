@@ -50,13 +50,13 @@ def get_ydl_opts(extra=None):
     """Build base yt-dlp options, adding cookies if available."""
     opts = {
         'format': 'best[ext=mp4]/best',
-        'quiet': True,
-        'no_warnings': True,
-        # Use the iOS client which is less restricted and bypasses bot detection
-        # better than the default web client when running on datacenter IPs
+        'quiet': False,       # Enable verbose for debugging in server logs
+        'no_warnings': False,
+        # Try multiple clients: tv is treated differently from web
+        # and often bypasses bot detection on datacenter IPs
         'extractor_args': {
             'youtube': {
-                'player_client': ['ios'],
+                'player_client': ['tv', 'mweb'],
             }
         },
     }
