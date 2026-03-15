@@ -17,9 +17,8 @@ _BOT_DETECTION_SIGNALS = [
 
 _MAINTENANCE_MSG = (
     "A versão online está temporariamente em manutenção.<br>"
-    "Use a versão local do software enquanto trabalhamos na correção.<br>"
     "A versão local está funcionando perfeitamente! <br>"
-    "Bons downloads locais!"
+    "Bons downloads!"
 )
 
 _ANSI_RE = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
