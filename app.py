@@ -1,11 +1,60 @@
 import os
-import subprocess
+import urllib.request
 from flask import Flask, request, jsonify, Response, render_template
 from flask_cors import CORS
 import yt_dlp
 
 app = Flask(__name__)
 CORS(app)
+
+COOKIES_PATH = 'cookies.txt'
+
+def sanitize_cookies_file():
+    """
+    Re-writes the cookies.txt to ensure it is in valid Netscape format.
+    This fixes issues caused by the Render Secret Files UI adding invisible
+    characters (BOM) or extra whitespace when pasting content.
+    """
+    if not os.path.exists(COOKIES_PATH):
+        return
+
+    try:
+        with open(COOKIES_PATH, 'r', encoding='utf-8-sig') as f:  # utf-8-sig strips BOM
+            lines = f.readlines()
+
+        # Strip leading/trailing whitespace from each line
+        lines = [line.strip() for line in lines]
+
+        # Remove leading blank lines
+        while lines and not lines[0]:
+            lines.pop(0)
+
+        # Ensure the first line is the required Netscape header
+        if not lines or not lines[0].startswith('# Netscape HTTP Cookie File'):
+            lines.insert(0, '# Netscape HTTP Cookie File')
+
+        with open(COOKIES_PATH, 'w', encoding='utf-8', newline='\n') as f:
+            f.write('\n'.join(lines) + '\n')
+
+        print("[SeppTube] cookies.txt sanitized successfully.")
+    except Exception as e:
+        print(f"[SeppTube] Could not sanitize cookies.txt: {e}")
+
+# Sanitize cookie file on startup
+sanitize_cookies_file()
+
+def get_ydl_opts(extra=None):
+    """Build base yt-dlp options, adding cookies if available."""
+    opts = {
+        'format': 'best[ext=mp4]/best',
+        'quiet': True,
+        'no_warnings': True,
+    }
+    if os.path.exists(COOKIES_PATH):
+        opts['cookiefile'] = COOKIES_PATH
+    if extra:
+        opts.update(extra)
+    return opts
 
 @app.route('/')
 def index():
@@ -22,20 +71,9 @@ def get_video_info():
     if not url:
         return jsonify({"error": "No URL provided"}), 400
 
-    ydl_opts = {
-        'skip_download': True,
-        'format': 'best[ext=mp4]/best',
-        'quiet': True,
-        'no_warnings': True,
-    }
-    
-    # Adiciona suporte a cookies se o arquivo existir (necessário para deploy em cloud/Render)
-    if os.path.exists('cookies.txt'):
-        ydl_opts['cookiefile'] = 'cookies.txt'
     try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(get_ydl_opts({'skip_download': True})) as ydl:
             info_dict = ydl.extract_info(url, download=False)
-            
             return jsonify({
                 "title": info_dict.get('title', 'Unknown Title'),
                 "duration": info_dict.get('duration', 0),
@@ -53,24 +91,14 @@ def download_video():
     if not url:
         return "No URL provided", 400
 
-    ydl_opts = {
-        'format': 'best[ext=mp4]/best',
-        'quiet': True,
-        'no_warnings': True,
-    }
-
-    if os.path.exists('cookies.txt'):
-        ydl_opts['cookiefile'] = 'cookies.txt'
-
     try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(get_ydl_opts()) as ydl:
             info_dict = ydl.extract_info(url, download=False)
             video_url = info_dict.get('url')
-            
+
             if not video_url:
                 raise Exception("Não foi possível encontrar um link de download direto.")
-                
-            import urllib.request
+
             http_headers = info_dict.get('http_headers', {})
             req = urllib.request.Request(video_url, headers=http_headers)
             response = urllib.request.urlopen(req)
@@ -89,15 +117,13 @@ def download_video():
                 'Content-Type': response.headers.get('Content-Type', 'video/mp4'),
                 'Content-Length': response.headers.get('Content-Length', '')
             }
-            # Remove empty headers
             headers = {k: v for k, v in headers.items() if v}
 
             return Response(generate(), headers=headers)
-            
+
     except Exception as e:
         return str(e), 500
 
 if __name__ == '__main__':
-    # Use environment port for local testing flexibility
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
