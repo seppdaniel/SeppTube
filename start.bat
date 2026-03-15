@@ -1,6 +1,6 @@
 @echo off
 echo ==========================================
-echo Inicializando o AeroTube Web App - Backend
+echo Inicializando o SeppTube Web App - Backend
 echo ==========================================
 
 IF NOT EXIST venv (
