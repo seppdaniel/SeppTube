@@ -4,13 +4,13 @@ SeppTube é uma aplicação web para baixar vídeos do YouTube em alta qualidade
 
 ## Funcionalidades
 
-- *Design*: Interface translúcida com animações suaves e modo escuro.
-- *Responsividade*: Layout que se adapta perfeitamente a computadores, tablets e celulares.
+- **Design**: Interface translúcida com animações suaves e modo escuro.
+- **Responsividade**: Layout que se adapta perfeitamente a computadores, tablets e celulares.
 - **Download**: 
-  - No *Desktop*: Abre a janela nativa de "Salvar como..." para você escolher o destino.
-  - No *Mobile*: Download direto para a pasta padrão do dispositivo.
-- *Motor*: Utiliza `yt-dlp` para extração rápida e estável de vídeos.
-- *Segurança*: Suporte a cookies para evitar bloqueios de bot.
+  - No **Desktop**: Abre a janela nativa de "Salvar como..." para você escolher o destino.
+  - No **Mobile**: Download direto para a pasta padrão do dispositivo.
+- **Motor**: Utiliza `yt-dlp` para extração rápida e estável de vídeos.
+- **Segurança**: Suporte a cookies para evitar bloqueios de bot.
 
 ## Como Rodar Localmente (Windows)
 
