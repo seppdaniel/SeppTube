@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeppTube Downloader</title>
+    <!-- Modern Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="background-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+
+    <div class="container glass-panel">
+        <header>
+            <h1><i class="fa-brands fa-youtube" style="color: #ef4444;"></i> SeppTube</h1>
+            <p>Baixe vídeos em alta qualidade com facilidade.</p>
+        </header>
+
+        <main>
+            <div class="input-group">
+                <i class="fa-solid fa-link input-icon"></i>
+                <input type="url" id="video-url" placeholder="Cole o link do YouTube aqui..." autocomplete="off">
+                <button id="fetch-btn" class="btn primary-btn">Buscar</button>
+            </div>
+
+            <div id="loading-spinner" class="hidden">
+                <div class="spinner"></div>
+                <p>Analisando link...</p>
+            </div>
+
+            <div id="error-message" class="hidden error-box"></div>
+
+            <div id="video-info" class="hidden">
+                <div class="video-card">
+                    <img id="video-thumbnail" src="" alt="Thumbnail">
+                    <div class="video-details">
+                        <h2 id="video-title">Título do Vídeo</h2>
+                        <p id="video-channel"><i class="fa-solid fa-user"></i> <span>Canal</span></p>
+                        <p id="video-duration"><i class="fa-solid fa-clock"></i> <span>00:00</span></p>
+                    </div>
+                </div>
+
+                <div class="download-section">
+                    <button id="download-btn" class="btn success-btn">
+                        <i class="fa-solid fa-download"></i> Salvar e Baixar Vídeo
+                    </button>
+                    <div id="download-progress-container" class="hidden text-center">
+                        <div class="progress-bar-bg">
+                            <div id="progress-bar-fill" class="progress-bar-fill"></div>
+                        </div>
+                        <p id="progress-text">Preparando download...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+
+</html>
