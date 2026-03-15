@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const showError = (msg) => {
-        errorBox.textContent = msg;
+        errorBox.innerHTML = msg;
         errorBox.classList.remove('hidden');
     };
 
