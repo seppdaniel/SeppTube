@@ -11,6 +11,10 @@ CORS(app)
 def index():
     return render_template('index.html')
 
+@app.route('/health')
+def health():
+    return jsonify({"status": "healthy"}), 200
+
 @app.route('/api/info', methods=['POST'])
 def get_video_info():
     data = request.json
@@ -85,4 +89,6 @@ def download_video():
         return str(e), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # Use environment port for local testing flexibility
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
