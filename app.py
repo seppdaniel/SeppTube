@@ -7,7 +7,10 @@ import yt_dlp
 app = Flask(__name__)
 CORS(app)
 
-COOKIES_PATH = 'cookies.txt'
+# Use absolute path so the file is always found regardless of working directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+COOKIES_PATH = os.path.join(BASE_DIR, 'cookies.txt')
+
 
 def sanitize_cookies_file():
     """
@@ -63,6 +66,28 @@ def index():
 @app.route('/health')
 def health():
     return jsonify({"status": "healthy"}), 200
+
+@app.route('/debug')
+def debug():
+    """Endpoint to help diagnose cookie file issues on the server."""
+    cookie_exists = os.path.exists(COOKIES_PATH)
+    cookie_preview = None
+    cookie_size = None
+    if cookie_exists:
+        cookie_size = os.path.getsize(COOKIES_PATH)
+        try:
+            with open(COOKIES_PATH, 'r', encoding='utf-8') as f:
+                first_lines = [f.readline() for _ in range(3)]
+            cookie_preview = [repr(line) for line in first_lines]
+        except Exception as e:
+            cookie_preview = [f"Error reading: {e}"]
+    return jsonify({
+        "base_dir": BASE_DIR,
+        "cookies_path": COOKIES_PATH,
+        "cookies_exists": cookie_exists,
+        "cookies_size_bytes": cookie_size,
+        "first_3_lines_repr": cookie_preview
+    })
 
 @app.route('/api/info', methods=['POST'])
 def get_video_info():
