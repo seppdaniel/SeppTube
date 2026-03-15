@@ -52,6 +52,13 @@ def get_ydl_opts(extra=None):
         'format': 'best[ext=mp4]/best',
         'quiet': True,
         'no_warnings': True,
+        # Use the iOS client which is less restricted and bypasses bot detection
+        # better than the default web client when running on datacenter IPs
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['ios'],
+            }
+        },
     }
     if os.path.exists(COOKIES_PATH):
         opts['cookiefile'] = COOKIES_PATH
